@@ -64,3 +64,14 @@ fileWorker.WriteFile();
 NewRestrictedFileWorker newRestrictedFileWorker = new();
 // Only reading file is available
 newRestrictedFileWorker.ReadFile("321.txt");
+
+/*
+*   INTERFACE SEGREGATION PRINCIPLE
+*
+*   The Interface Segregation Principle revolves around the idea that clients 
+*   should not be forced to rely on methods they do not use.
+*
+*   SIMPLY:
+*
+*   Don't mix different business logic into one interface.
+*/
