@@ -1,0 +1,6 @@
+@Tutorial5.Showcase_HostAddress = http://localhost:5200
+
+GET {{Tutorial5.Showcase_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
