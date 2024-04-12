@@ -1,0 +1,23 @@
+{
+  "name": "Kostiantyn",
+  "jobs": [
+    "Teacher",
+    "Full-stack programmer"
+  ],
+  "universities": [
+    {
+      "name": "KhPI",
+      "startYear": 2018,
+      "endYear": 2022
+    },
+    {
+      "name": "PJAIT",
+      "startYear": 2022,
+      "endYear": 2024
+    }
+  ],
+  "favouriteGame": {
+    "name": "Rocket League",
+    "releaseYear": 2015
+  }
+}
