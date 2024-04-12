@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tutorial4", "Tutorial4", "{37E7D0FD-A5C2-48B1-9C48-EDEA137C593A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial4.Showcase", "Tutorial4.Showcase\Tutorial4.Showcase.csproj", "{637652CC-8598-488F-BD3E-F94552C669FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial5.Showcase", "Tutorial5.Showcase\Tutorial5.Showcase.csproj", "{5E4FAEEE-F3CD-4561-A07F-F329DFC39208}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tutorial6", "Tutorial6", "{4A1106AC-7E00-4A4E-9D11-6E60A23401AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
