@@ -5,6 +5,6 @@ namespace Tutorial6.Showcase.Repositories;
 public interface ICarRepository
 {
     IEnumerable<Car> GetAll();
-    Car GetById(int id);
+    Car? GetById(int id);
     
 }

@@ -1,59 +1,116 @@
+using System.Data;
 using Microsoft.Data.SqlClient;
 using Tutorial6.Showcase.Models;
 
 namespace Tutorial6.Showcase.Repositories;
 
-public class CarRepository : ICarRepository
+public class CarRepository(string connectionString) : ICarRepository
 {
     public IEnumerable<Car> GetAll()
     {
-        const string connectionString =
-            "Data Source=(local);Initial Catalog=Northwind;"
-            + "Integrated Security=true";
-
+        List<Car> cars = new();
         // Provide the query string with a parameter placeholder.
-        const string queryString =
-            "SELECT ProductID, UnitPrice, ProductName from dbo.products "
-                + "WHERE UnitPrice > @pricePoint "
-                + "ORDER BY UnitPrice DESC;";
-
-        // Specify the parameter value.
-        const int paramValue = 5;
+        const string queryString = "SELECT * FROM Car";
 
         // Create and open the connection in a using block. This
         // ensures that all resources will be closed and disposed
         // when the code exits.
-        using (SqlConnection connection =
-            new(connectionString))
+        using (SqlConnection connection = new(connectionString))
         {
             // Create the Command and Parameter objects.
             SqlCommand command = new(queryString, connection);
-            command.Parameters.AddWithValue("@pricePoint", paramValue);
 
             // Open the connection in a try/catch block.
             // Create and execute the DataReader, writing the result
             // set to the console window.
+            connection.Open();
+            SqlDataReader reader = command.ExecuteReader();
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
+                while (reader.HasRows)
                 {
-                    Console.WriteLine("\t{0}\t{1}\t{2}",
-                        reader[0], reader[1], reader[2]);
+                    cars.Add(new Car {
+                        Id = reader.GetInt32(0),
+                        Name = reader.GetString(1),
+                        Weight = reader.GetDouble(2),
+                        TopSpeed = reader.GetDouble(3)
+                    });
                 }
-                reader.Close();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
-            Console.ReadLine();
+            finally 
+            {
+                reader.Close();
+            }
         }
+
+        return cars;
     }
 
-    public Car GetById(int id)
+    public Car? GetById(int id)
     {
-        throw new NotImplementedException();
+        Car? specificCar = null;
+        // Provide the query string with a parameter placeholder.
+        const string queryString = "SELECT * FROM Car WHERE Id = @carId";
+
+        // Create and open the connection in a using block. This
+        // ensures that all resources will be closed and disposed
+        // when the code exits.
+        using (SqlConnection connection = new(connectionString))
+        {
+            // Create the Command and Parameter objects.
+            SqlCommand command = new(queryString, connection);
+            command.Parameters.AddWithValue("carId", id);
+
+            // Open the connection in a try/catch block.
+            // Create and execute the DataReader, writing the result
+            // set to the console window.
+            connection.Open();
+            SqlDataReader reader = command.ExecuteReader();
+            try
+            {
+                while (reader.HasRows)
+                {
+                    specificCar = new Car {
+                        Id = reader.GetInt32(0),
+                        Name = reader.GetString(1),
+                        Weight = reader.GetDouble(2),
+                        TopSpeed = reader.GetDouble(3)
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally {
+                reader.Close();
+            }
+        }
+
+        return specificCar;
+    }
+
+    public bool AddCar(Car newCar) 
+    {
+        const string insertString = "INSERT INTO Car(Id, Name, Weight, TopSpeed) VALUES (@Id, @Name, @Weight, @TopSpeed)";
+        int countRowsAdded = -1;
+        using (SqlConnection connection = new SqlConnection(connectionString)) 
+        {
+            // Create the Command and Parameter objects.
+            SqlCommand command = new(insertString, connection);
+            command.Parameters.AddWithValue("Id", newCar.Id);
+            command.Parameters.AddWithValue("Name", newCar.Name);
+            command.Parameters.AddWithValue("Weight", newCar.Weight);
+            command.Parameters.AddWithValue("TopSpeed", newCar.TopSpeed);
+
+            connection.Open();
+            countRowsAdded = command.ExecuteNonQuery();
+        }
+
+        return countRowsAdded != -1;
     }
 }
