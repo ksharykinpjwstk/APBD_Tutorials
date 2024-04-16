@@ -6,5 +6,5 @@ public interface ICarRepository
 {
     IEnumerable<Car> GetAll();
     Car? GetById(int id);
-    
+    bool AddCar(Car newCar);
 }

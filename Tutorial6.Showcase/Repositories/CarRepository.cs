@@ -27,19 +27,20 @@ public class CarRepository(string connectionString) : ICarRepository
             SqlDataReader reader = command.ExecuteReader();
             try
             {
-                while (reader.HasRows)
+                if (reader.HasRows)
                 {
-                    cars.Add(new Car {
-                        Id = reader.GetInt32(0),
-                        Name = reader.GetString(1),
-                        Weight = reader.GetDouble(2),
-                        TopSpeed = reader.GetDouble(3)
-                    });
+                    // Read row by row
+                    while (reader.Read()) 
+                    {
+                        var car = new Car {
+                            Id = reader.GetInt32(0),
+                            Name = reader.GetString(1),
+                            Weight = reader.GetDouble(2),
+                            TopSpeed = reader.GetDouble(3)
+                        };
+                        cars.Add(car);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
             }
             finally 
             {
@@ -72,14 +73,17 @@ public class CarRepository(string connectionString) : ICarRepository
             SqlDataReader reader = command.ExecuteReader();
             try
             {
-                while (reader.HasRows)
+                if (reader.HasRows)
                 {
-                    specificCar = new Car {
-                        Id = reader.GetInt32(0),
-                        Name = reader.GetString(1),
-                        Weight = reader.GetDouble(2),
-                        TopSpeed = reader.GetDouble(3)
-                    };
+                   while (reader.Read()) 
+                   {
+                        specificCar = new Car {
+                            Id = reader.GetInt32(0),
+                            Name = reader.GetString(1),
+                            Weight = reader.GetDouble(2),
+                            TopSpeed = reader.GetDouble(3)
+                        };
+                   } 
                 }
             }
             catch (Exception ex)
