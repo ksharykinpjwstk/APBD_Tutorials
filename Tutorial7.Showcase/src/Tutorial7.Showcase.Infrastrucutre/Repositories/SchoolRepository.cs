@@ -46,9 +46,30 @@ public class SchoolRepository(string connectionString) : ISchoolRepository
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<School>> Get()
+    public async Task<IEnumerable<School>> Get()
     {
-        throw new NotImplementedException();
+        List<School> schools = [];
+        const string selectSchools = "SELECT * FROM School";
+        using var con = new SqlConnection(connectionString);
+        using var com = new SqlCommand(selectSchools);
+
+        SqlDataReader reader = await com.ExecuteReaderAsync();
+        if (reader.HasRows) 
+        {
+            while(reader.Read());
+            {
+                var school = new School {
+                    Id = reader.GetInt32(0),
+                    CityId = reader.GetInt32(1),
+                    Name = reader.GetString(2),
+                    StudentCoutn = reader.GetInt32(3),
+                    Description = reader.GetString(4)
+                };
+                schools.Add(school);
+            }
+        }
+
+        return schools;
     }
 
     public Task<School?> GetById(int id)
