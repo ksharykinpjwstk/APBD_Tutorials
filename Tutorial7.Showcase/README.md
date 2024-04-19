@@ -33,6 +33,7 @@ Do not change database by default unless you understand what you're doing.
 <InvariantGlobalization>false</InvariantGlobalization>
 ```
 Otherwise, you will get an exception
+
 5. To launch it, just select http/https profile in your IDE or run next command in terminal (assuming that you launch it from root of repository):
 ```
 dotnet run --project .\Tutorial7.Showcase\src\Tutorial7.Showcase.API\Tutorial7.Showcase.API.csproj
