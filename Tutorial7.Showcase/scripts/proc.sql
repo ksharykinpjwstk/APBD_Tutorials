@@ -19,5 +19,5 @@ BEGIN
     INSERT INTO School(CityId, Name, StudentCount, Description)
     VALUES(@IdCity, @SchoolName, @StudentCount, null); 
 
-    COMMIT:
+    COMMIT;
 END

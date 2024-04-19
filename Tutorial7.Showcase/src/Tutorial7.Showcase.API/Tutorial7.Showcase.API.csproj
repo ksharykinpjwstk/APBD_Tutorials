@@ -11,4 +11,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Tutorial7.Showcase.Infrastrucutre\Tutorial7.Showcase.Infrastrucutre.csproj" />
+    <ProjectReference Include="..\Tutorial7.Showcase.Entities\Tutorial7.Showcase.Entities.csproj" />
+    <ProjectReference Include="..\Tutorial7.Showcase.Application\Tutorial7.Showcase.Application.csproj" />
+  </ItemGroup>
+
 </Project>

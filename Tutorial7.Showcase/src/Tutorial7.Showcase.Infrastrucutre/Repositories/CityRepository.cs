@@ -3,13 +3,13 @@ using Tutorial7.Showcase.Entities;
 
 namespace Tutorial7.Showcase.Infrastrucutre;
 
-public class CountryRepository(string connectionString) : ICountryRepository
+public class CityRepository(string connectionString) : ICityRepository
 {
-    public async Task<IEnumerable<Country>> Get()
+    public async Task<IEnumerable<City>> Get()
     {
-        List<Country> countries = [];
+        List<City> cities = [];
 
-        const string selectSchools = "SELECT * FROM Country";
+        const string selectSchools = "SELECT * FROM City";
         using var con = new SqlConnection(connectionString);
         using var com = new SqlCommand(selectSchools, con);
 
@@ -20,39 +20,42 @@ public class CountryRepository(string connectionString) : ICountryRepository
         {
             while(reader.Read())
             {
-                var country = new Country {
+                var city = new City {
                     Id = reader.GetInt32(0),
-                    Name = reader.GetString(1)
+                    CountryId = reader.GetInt32(1),
+                    Name = reader.GetString(2)
                 };
-                countries.Add(country);
+                cities.Add(city);
             }
         }
         
-        return countries;
+        return cities;
     }
 
-    public async Task<Country?> GetById(int id)
+    public async Task<City?> GetById(int id)
     {
-        Country? country = null;
+        City? city = null;
         
         const string selectSchools = "SELECT Top 1 * FROM Country WHERE Id = @Id";
         using var con = new SqlConnection(connectionString);
-        using var com = new SqlCommand(selectSchools);
+        using var com = new SqlCommand(selectSchools, con);
 
         com.Parameters.AddWithValue("@Id", id);
+
+        await con.OpenAsync();
 
         SqlDataReader reader = await com.ExecuteReaderAsync();
         if (reader.HasRows) 
         {
             while(reader.Read())
             {
-                country = new Country {
+                city = new City {
                     Id = reader.GetInt32(0),
                     Name = reader.GetString(1)
                 };
             }
         }
 
-        return country;
+        return city;
     }
 }

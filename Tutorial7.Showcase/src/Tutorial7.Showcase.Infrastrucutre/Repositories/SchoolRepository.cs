@@ -27,14 +27,15 @@ public class SchoolRepository(string connectionString) : ISchoolRepository
         }
         else 
         {
-            var sqlTextCom = @"INSERT INTO School(CityId, SchoolName, StudentCount, Description) VALUES 
+            var sqlTextCom = @"INSERT INTO School(CityId, Name, StudentCount, Description) VALUES 
                             (@CityId, @SchoolName, @StudentCount, @Description)";
-            using var com = new SqlCommand(sqlTextCom);
+            using var com = new SqlCommand(sqlTextCom, con);
             com.Parameters.AddWithValue("@CityId", newSchool.CityId);
             com.Parameters.AddWithValue("@SchoolName", newSchool.Name);
             com.Parameters.AddWithValue("@StudentCount", newSchool.StudentCoutn);
             com.Parameters.AddWithValue("@Description", newSchool.Description);
 
+            await con.OpenAsync();
             result = await com.ExecuteNonQueryAsync();
         }
 
@@ -51,7 +52,9 @@ public class SchoolRepository(string connectionString) : ISchoolRepository
         List<School> schools = [];
         const string selectSchools = "SELECT * FROM School";
         using var con = new SqlConnection(connectionString);
-        using var com = new SqlCommand(selectSchools);
+        using var com = new SqlCommand(selectSchools, con);
+
+        await con.OpenAsync();
 
         SqlDataReader reader = await com.ExecuteReaderAsync();
         if (reader.HasRows) 

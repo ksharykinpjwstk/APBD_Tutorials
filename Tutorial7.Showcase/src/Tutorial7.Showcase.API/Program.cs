@@ -1,6 +1,18 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Tutorial7.Showcase.Application;
+using Tutorial7.Showcase.Infrastrucutre;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("Docker")!;
+
+builder.Services.AddSingleton<ICountryRepository>(countryRepository => new CountryRepository(connectionString));
+builder.Services.AddSingleton<ICityRepository>(cityRepository => new CityRepository(connectionString));
+builder.Services.AddSingleton<ISchoolRepository>(schoolRepository => new SchoolRepository(connectionString));
+
+builder.Services.AddScoped<ISchoolService, SchoolService>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -16,29 +28,27 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+app.MapGet("schools", async (ISchoolService schoolService) => {
+    return await schoolService.GetAll();
 })
-.WithName("GetWeatherForecast")
+.WithName("Get schools")
 .WithOpenApi();
 
-app.Run();
+app.MapPost("schools", async (ISchoolService schoolService, AddSchoolDTO schoolDTO) => {
+    try 
+    {
+        var result = await schoolService.Add(schoolDTO);
+        return result ? Results.Created() : Results.BadRequest();
+    }
+    catch (ArgumentException ae) 
+    {
+        return Results.BadRequest(ae.Message);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex);
+        return Results.Problem(title: "Something went wrong. Try later.", statusCode: 500);
+    } 
+});
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+app.Run();
