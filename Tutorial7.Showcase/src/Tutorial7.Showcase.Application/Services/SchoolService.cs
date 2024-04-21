@@ -36,7 +36,13 @@ public class SchoolService(
         {
             var schoolCity = cities.First(ci => ci.Id == school.CityId);
             var schoolCountry = countries.First(c => c.Id == schoolCity.Id);
-            schools.Add(new SchoolDTO(schoolCountry.Name, schoolCity.Name, school.Name, school.StudentCoutn, school.Description));
+            schools.Add(new SchoolDTO{ 
+                    Country = schoolCountry.Name, 
+                    City = schoolCity.Name, 
+                    Name = school.Name, 
+                    StudentCount = school.StudentCoutn, 
+                    Description = school.Description
+                });
         }
 
         return schools;
