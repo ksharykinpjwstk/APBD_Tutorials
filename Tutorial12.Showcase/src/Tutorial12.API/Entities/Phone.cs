@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Tutorial12.API.Entities;
 
 public class Phone
@@ -13,6 +15,9 @@ public class Phone
     public bool Has5G { get; set; }
     
     public string? Description { get; set; }
+    
+    [Timestamp]
+    public byte[] ConcurrencyToken { get; set; }  = null!;
     
     // One - to - many (dependent child)
     // Here we have navigation only to parent (or so called "principal")

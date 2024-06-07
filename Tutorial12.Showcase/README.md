@@ -7,7 +7,6 @@ least important, this project shows example of creating of middleware that allow
 
 ## Nuget dependencies
 
-- Microsoft.AspNetCore.Identity.EntityFrameworkCore - add authentication with help of EF Core
 - Microsoft.EntityFrameworkCore.SqlServer - to make EF Core work with SQL Server
 - Microsoft.EntityFrameworkCore.Design - adding support of migration
 
