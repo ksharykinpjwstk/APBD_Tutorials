@@ -5,10 +5,11 @@ using Tutorial12.API.Entities;
 
 namespace Tutorial12.API;
 
-public class ApplicationContext(DbContextOptions<ApplicationContext> options) : IdentityDbContext<IdentityUser>(options)
+public class ApplicationContext(DbContextOptions<ApplicationContext> options) : DbContext(options)
 {
     public DbSet<Phone> Phones { get; set; }
     public DbSet<PhoneManufacture> PhoneManufactures { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +35,16 @@ public class ApplicationContext(DbContextOptions<ApplicationContext> options) : 
             entity.HasIndex(pm => pm.Name).IsUnique();
 
             entity.Property(pm => pm.Name).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("User");
+            entity.HasKey(u => u.Id).HasName("User_PK");
+            entity.HasIndex(u => u.Username).IsUnique();
+
+            entity.Property(u => u.Username).HasMaxLength(50);
+            entity.Property(u => u.Password).HasMaxLength(256);
         });
     }
 }

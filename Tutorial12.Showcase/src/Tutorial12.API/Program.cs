@@ -3,12 +3,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Tutorial12.API;
+using Tutorial12.API.Helpers;
+using Tutorial12.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
 builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Docker")));
+builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
 // Add token-based authentication
 builder.Services.AddAuthentication(a =>
     {
@@ -23,7 +26,7 @@ builder.Services.AddAuthentication(a =>
             ValidIssuer = config["JwtSettings:Issuer"],
             ValidAudience = config["JwtSettings:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(config["Jwt:Key"]!)),
+                Encoding.UTF8.GetBytes(config["JwtSettings:Key"]!)),
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
@@ -37,6 +40,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//Option 1
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -46,6 +52,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+//Option 1: Part 2
+app.UseExceptionHandler();
+
+// Option 2: Custom middleware global error handler
+//app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 
 app.UseAuthentication();
 app.UseAuthorization();
