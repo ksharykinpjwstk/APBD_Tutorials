@@ -1,4 +1,4 @@
-INSERT INTO MobilePhoneBrands (Name)
+INSERT INTO PhoneManufacture (Name)
 VALUES ('Acer'),
        ('Akai'),
        ('Alcatel Mobile'),
