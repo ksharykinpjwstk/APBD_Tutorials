@@ -14,5 +14,8 @@ public class Phone
     
     public string? Description { get; set; }
     
+    // One - to - many (dependent child)
+    // Here we have navigation only to parent (or so called "principal")
     public int PhoneManufactureId { get; set; }
+    public PhoneManufacture PhoneManufacture { get; set; }
 }
