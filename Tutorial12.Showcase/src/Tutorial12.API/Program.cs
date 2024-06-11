@@ -35,10 +35,7 @@ builder.Services.AddAuthentication(a =>
         };
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    
-});
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -70,7 +67,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-//Option 1
+//Option 1 of global handling
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
@@ -82,7 +79,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-//Option 1: Part 2
+//Option 1 of global handling: Part 2
 app.UseExceptionHandler();
 
 // Option 2: Custom middleware global error handler
