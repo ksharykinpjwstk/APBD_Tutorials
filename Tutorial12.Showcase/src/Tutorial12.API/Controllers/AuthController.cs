@@ -15,8 +15,17 @@ public class AuthController(ApplicationContext context, IAuthenticationService a
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
 
+    /// <summary>
+    /// Create a new user
+    /// </summary>
+    /// <param name="createUser">Class instance that contains basic info about user and their credentials.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Nothing</returns>
     [Route("register")]
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUser,
         CancellationToken cancellationToken)
     {
@@ -28,8 +37,18 @@ public class AuthController(ApplicationContext context, IAuthenticationService a
         return Created();
     }
 
+    /// <summary>
+    /// Login user with given credentials.
+    /// </summary>
+    /// <param name="loginUser">Class that describes credentials.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Access and refresh tokens.</returns>
     [Route("login")]
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AuthDto>> LoginUser([FromBody] LoginUserDto loginUser,
         CancellationToken cancellationToken)
     {
@@ -55,6 +74,7 @@ public class AuthController(ApplicationContext context, IAuthenticationService a
         };
 
         databaseUser.RefreshToken = authResponse.RefreshToken;
+        // Refresh token is valid for 1 day.
         databaseUser.RefreshTokenExpire = DateTime.Now.AddDays(1);
 
         context.Entry(databaseUser).State = EntityState.Modified;
@@ -64,8 +84,18 @@ public class AuthController(ApplicationContext context, IAuthenticationService a
         return Ok(authResponse);
     }
 
+    /// <summary>
+    /// Provide new access and refresh tokens.
+    /// </summary>
+    /// <param name="auth">Class describes refresh and access tokens.</param>
+    /// <param name="cancellationToken">Cancellation tokens.</param>
+    /// <returns>Refreshed accessed and refresh tokens.</returns>
     [Route("refresh")]
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AuthDto>> RefreshToken([FromBody] AuthDto auth, CancellationToken cancellationToken)
     {
         var isTokenValid = await authService.ValidateExpiredAccessTokenAsync(auth.AccessToken);
@@ -74,6 +104,7 @@ public class AuthController(ApplicationContext context, IAuthenticationService a
             return Forbid();
         }
 
+        // We search user by refresh token. Not the best approach, but for this example is OK.
         var currentUser = await context.Users.Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.RefreshToken == auth.RefreshToken, cancellationToken: cancellationToken);
         if (currentUser is null || currentUser.RefreshTokenExpire < DateTime.Now)

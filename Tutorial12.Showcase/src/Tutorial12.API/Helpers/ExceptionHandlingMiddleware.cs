@@ -3,6 +3,9 @@ using Tutorial12.API.DTOs;
 
 namespace Tutorial12.API.Helpers;
 
+/// <summary>
+/// Example of usage custom middleware, that intercepts requests and act if there any errors during request execution
+/// </summary>
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;

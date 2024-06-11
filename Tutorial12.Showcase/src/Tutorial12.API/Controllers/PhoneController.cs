@@ -5,112 +5,113 @@ using Tutorial12.API.DTOs.Phones;
 using Tutorial12.API.Entities;
 using Tutorial12.API.Helpers;
 
-namespace Tutorial12.API.Controllers
+namespace Tutorial12.API.Controllers;
+
+[Route("api/phone")]
+// [Authorize] attribute is crucial. It says that only users, who provides token, can use all endpoints, listed in class.
+[Authorize]
+[ApiController]
+public class PhoneController : ControllerBase
 {
-    [Route("api/phone")]
-    [Authorize]
-    [ApiController]
-    public class PhoneController : ControllerBase
+    private readonly ApplicationContext _context;
+
+    public PhoneController(ApplicationContext context)
     {
-        private readonly ApplicationContext _context;
+        _context = context;
+    }
+        
+    [HttpGet]
+    // This attribute allows to access without authentication, but only for this endpoint
+    [AllowAnonymous]
+    public async Task<ActionResult<IEnumerable<PhoneDto>>> GetPhones()
+    {
+        var dbPhones = await _context.Phones.Include(p => p.PhoneManufacture).ToListAsync();
 
-        public PhoneController(ApplicationContext context)
+        return dbPhones.Select(phone => new PhoneDto(phone)).ToList();
+    }
+        
+    [HttpGet("{id}")]
+    // This attribute allows to access without authentication, but only for this endpoint
+    [AllowAnonymous]
+    public async Task<ActionResult<Phone>> GetPhone(int id)
+    {
+        var phone = await _context.Phones.FindAsync(id);
+
+        if (phone == null)
         {
-            _context = context;
+            return NotFound();
         }
 
-        // GET: api/Phone
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<PhoneDto>>> GetPhones()
-        {
-            var dbPhones = await _context.Phones.Include(p => p.PhoneManufacture).ToListAsync();
+        return phone;
+    }
 
-            return dbPhones.Select(phone => new PhoneDto(phone)).ToList();
+    // PUT: api/Phone/5
+    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPut]
+    public async Task<IActionResult> PutPhone(PhoneDto updatedPhone, CancellationToken cancellationToken)
+    {
+        if (!PhoneExists(updatedPhone.Id))
+        {
+            return BadRequest();
         }
 
-        // GET: api/Phone/5
-        [HttpGet("{id}")]
-        [AllowAnonymous]
-        public async Task<ActionResult<Phone>> GetPhone(int id)
+        var manufacture =
+            await _context.PhoneManufactures.FirstOrDefaultAsync(pm => string.Equals(pm.Name, updatedPhone.Manufacture),
+                cancellationToken: cancellationToken);
+        if (manufacture is null)
         {
-            var phone = await _context.Phones.FindAsync(id);
-
-            if (phone == null)
-            {
-                return NotFound();
-            }
-
-            return phone;
+            return BadRequest("Manufacture with given name was not found.");
         }
-
-        // PUT: api/Phone/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut]
-        public async Task<IActionResult> PutPhone(PhoneDto updatedPhone, CancellationToken cancellationToken)
-        {
-            if (!PhoneExists(updatedPhone.Id))
-            {
-                return BadRequest();
-            }
-
-            var manufacture =
-                await _context.PhoneManufactures.FirstOrDefaultAsync(pm => string.Equals(pm.Name, updatedPhone.Manufacture),
-                    cancellationToken: cancellationToken);
-            if (manufacture is null)
-            {
-                return BadRequest("Manufacture with given name was not found.");
-            }
             
-            var phone = await _context.Phones.FindAsync(new object?[] { updatedPhone.Id }, cancellationToken: cancellationToken);
-            phone = updatedPhone.Map(manufacture.Id);
-            _context.Entry(phone).State = EntityState.Modified;
+        var phone = await _context.Phones.FindAsync(new object?[] { updatedPhone.Id }, cancellationToken: cancellationToken);
+        phone = updatedPhone.Map(manufacture.Id);
+        _context.Entry(phone).State = EntityState.Modified;
 
-            await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
-            return NoContent();
-        }
+        return NoContent();
+    }
 
-        // POST: api/Phone
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Phone>> PostPhone(PhoneDto newPhone, CancellationToken cancellationToken)
+    // POST: api/Phone
+    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPost]
+    public async Task<ActionResult<Phone>> PostPhone(PhoneDto newPhone, CancellationToken cancellationToken)
+    {
+        var manufacture =
+            await _context.PhoneManufactures.FirstOrDefaultAsync(pm => string.Equals(pm.Name, newPhone.Manufacture),
+                cancellationToken: cancellationToken);
+        if (manufacture is null)
         {
-            var manufacture =
-                await _context.PhoneManufactures.FirstOrDefaultAsync(pm => string.Equals(pm.Name, newPhone.Manufacture),
-                    cancellationToken: cancellationToken);
-            if (manufacture is null)
-            {
-                return BadRequest("Manufacture with given name was not found.");
-            }
-
-            var mappedNewPhone = newPhone.Map(manufacture.Id);
-            _context.Phones.Add(mappedNewPhone);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return CreatedAtAction("GetPhone", new { id = mappedNewPhone.Id }, mappedNewPhone);
+            return BadRequest("Manufacture with given name was not found.");
         }
 
-        // DELETE: api/Phone/5
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeletePhone(int id)
+        var mappedNewPhone = newPhone.Map(manufacture.Id);
+        _context.Phones.Add(mappedNewPhone);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return CreatedAtAction("GetPhone", new { id = mappedNewPhone.Id }, mappedNewPhone);
+    }
+
+    // DELETE: api/Phone/5
+    [HttpDelete("{id}")]
+    // Only users with role "Admin" can use this endpoint.
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeletePhone(int id)
+    {
+        var phone = await _context.Phones.FindAsync(id);
+        if (phone == null)
         {
-            var phone = await _context.Phones.FindAsync(id);
-            if (phone == null)
-            {
-                return NotFound();
-            }
-
-            _context.Phones.Remove(phone);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NotFound();
         }
 
-        private bool PhoneExists(int id)
-        {
-            return _context.Phones.Any(e => e.Id == id);
-        }
+        _context.Phones.Remove(phone);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    private bool PhoneExists(int id)
+    {
+        return _context.Phones.Any(e => e.Id == id);
     }
 }
