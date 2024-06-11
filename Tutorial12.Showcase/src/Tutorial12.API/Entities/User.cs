@@ -11,4 +11,10 @@ public class User
     public string? RefreshToken { get; set; }
     
     public DateTime RefreshTokenExpire { get; set; }
+    
+    // One - to - many (dependent child)
+    // Here we have navigation only to parent (or so called "principal")
+    public int RoleId { get; set; }
+    
+    public Role Role { get; set; }
 }

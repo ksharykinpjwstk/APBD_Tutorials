@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tutorial12.API.DTOs;
 using Tutorial12.API.Entities;
+using Tutorial12.API.Helpers;
 using Tutorial12.API.Services;
 
 namespace Tutorial12.API.Controllers;
@@ -13,12 +14,15 @@ namespace Tutorial12.API.Controllers;
 public class AuthController(ApplicationContext context, IAuthenticationService authService) : ControllerBase
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
+
     [Route("register")]
     [HttpPost]
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUser, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUser,
+        CancellationToken cancellationToken)
     {
         var mappedUser = createUser.Map();
         mappedUser.Password = _passwordHasher.HashPassword(mappedUser, mappedUser.Password);
+        mappedUser.RoleId = context.Roles.First(r => r.Name == "User").Id;
         context.Users.Add(mappedUser);
         await context.SaveChangesAsync(cancellationToken);
         return Created();
@@ -26,34 +30,37 @@ public class AuthController(ApplicationContext context, IAuthenticationService a
 
     [Route("login")]
     [HttpPost]
-    public async Task<ActionResult<AuthDto>> LoginUser([FromBody] LoginUserDto loginUser, CancellationToken cancellationToken)
+    public async Task<ActionResult<AuthDto>> LoginUser([FromBody] LoginUserDto loginUser,
+        CancellationToken cancellationToken)
     {
-        var databaseUser = await context.Users.FirstOrDefaultAsync(u => u.Username == loginUser.Username, cancellationToken: cancellationToken);
+        var databaseUser = await context.Users.Include(u => u.Role).FirstOrDefaultAsync(
+            u => u.Username == loginUser.Username,
+            cancellationToken: cancellationToken);
         if (databaseUser is null)
         {
             return Unauthorized();
         }
 
-        var verificationResult = 
+        var verificationResult =
             _passwordHasher.VerifyHashedPassword(databaseUser, databaseUser.Password, loginUser.Password);
         if (verificationResult == PasswordVerificationResult.Failed)
         {
             return Unauthorized();
         }
-        
+
         var authResponse = new AuthDto
         {
-            AccessToken = authService.GenerateAccessToken(databaseUser.Username),
+            AccessToken = authService.GenerateAccessToken(databaseUser),
             RefreshToken = authService.GenerateRefreshToken()
         };
-        
+
         databaseUser.RefreshToken = authResponse.RefreshToken;
         databaseUser.RefreshTokenExpire = DateTime.Now.AddDays(1);
-        
+
         context.Entry(databaseUser).State = EntityState.Modified;
         context.Users.Update(databaseUser);
         await context.SaveChangesAsync(cancellationToken);
-        
+
         return Ok(authResponse);
     }
 
@@ -67,25 +74,26 @@ public class AuthController(ApplicationContext context, IAuthenticationService a
             return Forbid();
         }
 
-        var currentUser = context.Users.FirstOrDefault(u => u.RefreshToken == auth.RefreshToken);
+        var currentUser = await context.Users.Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.RefreshToken == auth.RefreshToken, cancellationToken: cancellationToken);
         if (currentUser is null || currentUser.RefreshTokenExpire < DateTime.Now)
         {
             return Forbid();
         }
-        
+
         var authResponse = new AuthDto
         {
-            AccessToken = authService.GenerateAccessToken(currentUser.Username),
+            AccessToken = authService.GenerateAccessToken(currentUser),
             RefreshToken = authService.GenerateRefreshToken()
         };
-        
+
         currentUser.RefreshToken = authResponse.RefreshToken;
         currentUser.RefreshTokenExpire = DateTime.Now.AddDays(1);
-        
+
         context.Entry(currentUser).State = EntityState.Modified;
         context.Users.Update(currentUser);
         await context.SaveChangesAsync(cancellationToken);
-        
+
         return Ok(authResponse);
     }
 }

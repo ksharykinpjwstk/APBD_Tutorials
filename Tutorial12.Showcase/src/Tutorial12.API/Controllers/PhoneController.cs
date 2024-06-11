@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tutorial12.API.DTOs.Phones;
 using Tutorial12.API.Entities;
+using Tutorial12.API.Helpers;
 
-namespace Tutorial12.API
+namespace Tutorial12.API.Controllers
 {
     [Route("api/phone")]
     [Authorize]
@@ -25,15 +21,17 @@ namespace Tutorial12.API
 
         // GET: api/Phone
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<PhoneDto>>> GetPhones()
         {
             var dbPhones = await _context.Phones.Include(p => p.PhoneManufacture).ToListAsync();
-            
+
             return dbPhones.Select(phone => new PhoneDto(phone)).ToList();
         }
 
         // GET: api/Phone/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Phone>> GetPhone(int id)
         {
             var phone = await _context.Phones.FindAsync(id);
@@ -80,16 +78,26 @@ namespace Tutorial12.API
         // POST: api/Phone
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Phone>> PostPhone(Phone phone)
+        public async Task<ActionResult<Phone>> PostPhone(PhoneDto newPhone, CancellationToken cancellationToken)
         {
-            _context.Phones.Add(phone);
-            await _context.SaveChangesAsync();
+            var manufacture =
+                await _context.PhoneManufactures.FirstOrDefaultAsync(pm => string.Equals(pm.Name, newPhone.Manufacture),
+                    cancellationToken: cancellationToken);
+            if (manufacture is null)
+            {
+                return BadRequest("Manufacture with given name was not found.");
+            }
 
-            return CreatedAtAction("GetPhone", new { id = phone.Id }, phone);
+            var mappedNewPhone = newPhone.Map(manufacture.Id);
+            _context.Phones.Add(mappedNewPhone);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return CreatedAtAction("GetPhone", new { id = mappedNewPhone.Id }, mappedNewPhone);
         }
 
         // DELETE: api/Phone/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeletePhone(int id)
         {
             var phone = await _context.Phones.FindAsync(id);

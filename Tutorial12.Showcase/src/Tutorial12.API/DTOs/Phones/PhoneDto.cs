@@ -4,6 +4,11 @@ namespace Tutorial12.API.DTOs.Phones;
 
 public class PhoneDto
 {
+    public PhoneDto()
+    {
+        
+    }
+
     public PhoneDto(Phone phone)
     {
         Manufacture = phone.PhoneManufacture.Name;
@@ -17,10 +22,20 @@ public class PhoneDto
     public string Manufacture { get; set; }
     public string ModelName { get; set; }
     public int CoreCount { get; set; }
-    
     public int Ram { get; set; }
-    
     public bool Has5G { get; set; }
-    
-    public string? Description { get; set; }    
+    public string? Description { get; set; }
+
+    public Phone Map(int phoneManufactureId)
+    {
+        return new Phone
+        {
+            ModelName = ModelName,
+            CoreCount = CoreCount,
+            PhoneManufactureId = phoneManufactureId,
+            Ram = Ram,
+            Has5G = Has5G,
+            Description = Description
+        };
+    }
 }

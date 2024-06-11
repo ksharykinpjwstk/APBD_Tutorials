@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Tutorial12.API;
+using Tutorial12.API.Helpers;
 
 #nullable disable
 
@@ -96,6 +96,28 @@ namespace Tutorial12.API.Migrations
                     b.ToTable("PhoneManufacture", (string)null);
                 });
 
+            modelBuilder.Entity("Tutorial12.API.Entities.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id")
+                        .HasName("Role_PK");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Role", (string)null);
+                });
+
             modelBuilder.Entity("Tutorial12.API.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -115,6 +137,9 @@ namespace Tutorial12.API.Migrations
                     b.Property<DateTime>("RefreshTokenExpire")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -122,6 +147,8 @@ namespace Tutorial12.API.Migrations
 
                     b.HasKey("Id")
                         .HasName("User_PK");
+
+                    b.HasIndex("RoleId");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -138,6 +165,17 @@ namespace Tutorial12.API.Migrations
                         .IsRequired();
 
                     b.Navigation("PhoneManufacture");
+                });
+
+            modelBuilder.Entity("Tutorial12.API.Entities.User", b =>
+                {
+                    b.HasOne("Tutorial12.API.Entities.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
                 });
 #pragma warning restore 612, 618
         }

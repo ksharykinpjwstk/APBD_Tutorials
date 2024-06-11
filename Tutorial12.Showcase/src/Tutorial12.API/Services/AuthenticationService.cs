@@ -3,13 +3,14 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Tutorial12.API.Entities;
 
 namespace Tutorial12.API.Services;
 
 public class AuthenticationService(IConfiguration config) : IAuthenticationService
 {
     private static readonly TimeSpan validTime = TimeSpan.FromMinutes(10);
-    public string GenerateAccessToken(string username)
+    public string GenerateAccessToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(config["JwtSettings:Key"]!);
@@ -17,7 +18,8 @@ public class AuthenticationService(IConfiguration config) : IAuthenticationServi
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Sub, username)
+            new(JwtRegisteredClaimNames.Sub, user.Username),
+            new(type: "role", user.Role.Name)
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
