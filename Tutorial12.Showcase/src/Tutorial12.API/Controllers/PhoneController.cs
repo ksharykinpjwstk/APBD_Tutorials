@@ -46,31 +46,27 @@ namespace Tutorial12.API.Controllers
 
         // PUT: api/Phone/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPhone(int id, Phone phone)
+        [HttpPut]
+        public async Task<IActionResult> PutPhone(PhoneDto updatedPhone, CancellationToken cancellationToken)
         {
-            if (id != phone.Id)
+            if (!PhoneExists(updatedPhone.Id))
             {
                 return BadRequest();
             }
 
+            var manufacture =
+                await _context.PhoneManufactures.FirstOrDefaultAsync(pm => string.Equals(pm.Name, updatedPhone.Manufacture),
+                    cancellationToken: cancellationToken);
+            if (manufacture is null)
+            {
+                return BadRequest("Manufacture with given name was not found.");
+            }
+            
+            var phone = await _context.Phones.FindAsync(new object?[] { updatedPhone.Id }, cancellationToken: cancellationToken);
+            phone = updatedPhone.Map(manufacture.Id);
             _context.Entry(phone).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PhoneExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync(cancellationToken);
 
             return NoContent();
         }

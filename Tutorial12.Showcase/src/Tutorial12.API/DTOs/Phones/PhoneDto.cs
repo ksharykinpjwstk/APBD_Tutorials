@@ -11,6 +11,7 @@ public class PhoneDto
 
     public PhoneDto(Phone phone)
     {
+        Id = phone.Id;
         Manufacture = phone.PhoneManufacture.Name;
         ModelName = phone.ModelName;
         CoreCount = phone.CoreCount;
@@ -19,6 +20,7 @@ public class PhoneDto
         Description = phone.Description;
     }
     
+    public int Id { get; set; }
     public string Manufacture { get; set; }
     public string ModelName { get; set; }
     public int CoreCount { get; set; }
